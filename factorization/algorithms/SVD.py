@@ -33,7 +33,6 @@ class SVD(Algorithm):
         nrows = mat.shape[0]
         ncols = mat.shape[1]
 
-
         if self.method == 'auto':
             if ncols < 750:
                 method = 'direct'
