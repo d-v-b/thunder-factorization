@@ -25,7 +25,8 @@ class SVD(Algorithm):
         from numpy import argsort, dot, outer, sqrt, sum, zeros, random
         from scipy.linalg import inv, orth
         from numpy.linalg import eigh
-        from thunder.series import Series
+        from thunder.series import Series, fromrdd
+        from pyspark.mllib.linalg.distributed import RowMatrix
 
         mat = Series(mat)
 
@@ -40,6 +41,15 @@ class SVD(Algorithm):
                 method = 'em'
         else:
             method = self.method
+
+        if method == 'mllib':
+            mat_rm = RowMatrix(mat.tordd().values())
+            svd_result = mat_rm.computeSVD(self.k, computeU=True)
+            u = svd_result.U.rows.map(lambda x: x.array)
+            u = u.zipWithIndex().map(lambda x: x[::-1])
+            u = fromrdd(u)
+            s = svd_result.s.array
+            v = svd_result.V.toArray().T
 
         if method == 'direct':
 
